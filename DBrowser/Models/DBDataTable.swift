@@ -8,5 +8,14 @@
 import Foundation
 
 struct DBDataTable {
-    let rows: [DBDataRow]
+    let id: String = UUID().uuidString
+    let name: String
+    var rows: [DBDataRow]
+
+    var numberOfColumns: Int {
+        guard let row = rows.first else { return 0 }
+        return row.items.count
+    }
 }
+
+extension DBDataTable: Identifiable {}

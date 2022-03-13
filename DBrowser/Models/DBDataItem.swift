@@ -7,6 +7,35 @@
 
 import Foundation
 
-struct DBDataItem {
-    
+protocol DBDataItemDisplayable {
+    var value: String { get }
+}
+
+extension DBDataItemDisplayable {
+    var id: String { UUID().uuidString }
+}
+
+struct DBDataSchemeItem: DBDataItemDisplayable {
+    let id: String = UUID().uuidString
+    private let _value: String
+    var value: String { _value }
+
+    init(value: String) {
+        _value = value
+    }
+}
+
+struct DBDataItem<T: CustomStringConvertible>: DBDataItemDisplayable {
+    private let _value: T?
+    var value: String {
+        _value?.description ?? "nil"
+    }
+
+    init(value: T?) {
+        _value = value
+    }
+}
+
+struct DBDataNilItem: DBDataItemDisplayable {
+    let value: String = "nil"
 }

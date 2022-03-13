@@ -8,6 +8,9 @@
 import Foundation
 
 struct DBDataRow {
-    let items: [DBDataItem]
+    let id: String = UUID().uuidString
+    let items: [DBDataItemDisplayable]
     let isHeaderRow: Bool
 }
+
+extension DBDataRow: Identifiable {}

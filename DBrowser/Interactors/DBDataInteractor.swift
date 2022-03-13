@@ -9,9 +9,11 @@ import Foundation
 import SwiftUI
 
 protocol DBDataInteractor {
-    func loadAllTableSchemes(schemes: Binding<[DBDataTable]>)
+    func loadAllTableSchemes(schemes: Binding<Loadable<[DBDataTable]>>)
+    func loadData<V>(from table: String, itemsPerPage: Int, orderBy: String, afterValue: V?)
 }
 
 struct InitialDBDataInteractor: DBDataInteractor {
-    func loadAllTableSchemes(schemes: Binding<[DBDataTable]>) { }
+    func loadAllTableSchemes(schemes: Binding<Loadable<[DBDataTable]>>) { }
+    func loadData<V>(from table: String, itemsPerPage: Int, orderBy: String, afterValue: V?) { }
 }
