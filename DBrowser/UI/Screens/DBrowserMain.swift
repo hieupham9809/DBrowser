@@ -28,12 +28,13 @@ public struct DBrowserMain: View {
     }
 
     public var body: some View {
-        self.content
-            .inject(container)
-            .onAppear {
-                container.interactors.dbDataInteractor.loadAllTableSchemes(schemes: $schemeTables)
-            }
-            
+        NavigationView {
+            self.content
+                .inject(container)
+                .onAppear {
+                    container.interactors.dbDataInteractor.loadAllTableSchemes(schemes: $schemeTables)
+                }
+        }
     }
 
     // WARNING: using AnyView is not good for SwiftUI's performance
@@ -59,57 +60,65 @@ extension DBrowserMain {
 extension DBrowserMain {
     func loadView(_ schemeTables: [DBDataTable]) -> some View {
         List(schemeTables, id: \.id) { table in
-            ScrollView(.horizontal) {
-                List(Array(zip(table.rows.indices, table.rows)), id: \.1.id) { index, row in
-                    HStack(spacing: 0) {
-                        ForEach(row.items, id: \.id) { item in
-                            Text("\(item.value)")
-                                .padding(4)
-                                .frame(width: Constant.defaultColumnWidth)
-                                .frame(maxHeight: .infinity)
-                                .foregroundColor(row.isHeaderRow ? Color.white : .black)
-                                .overlay(
-                                    Rectangle()
-                                        .frame(width: Constant.cellSeparatorWidth, height: nil, alignment: .trailing)
-                                        .foregroundColor(Color.gray),
-                                    alignment: .trailing
-                                )
-                        }
+            VStack {
+                HStack {
+                    NavigationLink {
+                        DBrowserTableDetails()
+                    } label: {
+                        Text("\(table.name)").font(Font.headline)
                     }
-                    .fixedSize()
+                }
+                ScrollView(.horizontal) {
+                    List(Array(zip(table.rows.indices, table.rows)), id: \.1.id) { index, row in
+                        HStack(spacing: 0) {
+                            ForEach(row.items, id: \.id) { item in
+                                Text("\(item.value)")
+                                    .padding(4)
+                                    .frame(width: Constant.defaultColumnWidth)
+                                    .frame(maxHeight: .infinity)
+                                    .foregroundColor(row.isHeaderRow ? Color.white : .black)
+                                    .overlay(
+                                        Rectangle()
+                                            .frame(width: Constant.cellSeparatorWidth, height: nil, alignment: .trailing)
+                                            .foregroundColor(Color.gray),
+                                        alignment: .trailing
+                                    )
+                            }
+                        }
+                        .fixedSize()
+                        .overlay(
+                            Rectangle()
+                                .frame(width: nil, height: Constant.cellSeparatorWidth, alignment: .bottom)
+                                .foregroundColor(Color.gray),
+                            alignment: .bottom
+                        )
+                        .background(row.isHeaderRow
+                                    ? Color.blue
+                                    : (isNeedHightlight(by: index) ? Color(hex: "#C1E3FF") : .white)
+                        )
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                        .hideRowSeparator()
+                        .clipped()
+                    }
+                    .environment(\.defaultMinListRowHeight, 10)
+                    .padding(0)
+                    .frame(width: CGFloat(table.numberOfColumns) * Constant.defaultColumnWidth,
+                           height: Constant.defaultSchemeTableHeight
+                    )
                     .overlay(
-                        Rectangle()
-                            .frame(width: nil, height: Constant.cellSeparatorWidth, alignment: .bottom)
-                            .foregroundColor(Color.gray),
-                        alignment: .bottom
+                        RoundedRectangle(cornerRadius: Constant.tableCornerRadius).stroke(Color.gray, lineWidth: 1)
                     )
-                    .background(row.isHeaderRow
-                                ? Color.blue
-                                : (isNeedHightlight(by: index) ? Color(hex: "#C1E3FF") : .white)
-                    )
-                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                    .hideRowIndicator()
-                    .clipped()
+                    .cornerRadius(Constant.tableCornerRadius)
+                    .onAppear {
+                        UITableView.appearance().separatorStyle = .none
+                    }
                 }
-                .environment(\.defaultMinListRowHeight, 10)
                 .padding(0)
-                .frame(width: CGFloat(table.numberOfColumns) * Constant.defaultColumnWidth,
-                       height: Constant.defaultSchemeTableHeight
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: Constant.tableCornerRadius).stroke(Color.gray, lineWidth: 1)
-                )
-                .cornerRadius(Constant.tableCornerRadius)
-                .onAppear {
-                    UITableView.appearance().separatorStyle = .none
-                }
-            }
-            .padding(0)
-            .listRowInsets(EdgeInsets())
-            .hideRowIndicator()
+                .listRowInsets(EdgeInsets())
+            }.hideRowSeparator()
         }
-        .padding(EdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10))
         .listStyle(PlainListStyle())
+        .compatNavigationTitle("All scheme tables", displayMode: .large)
     }
 }
 
