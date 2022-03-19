@@ -16,7 +16,6 @@ extension DBDataItemDisplayable {
 }
 
 struct DBDataSchemeItem: DBDataItemDisplayable {
-    let id: String = UUID().uuidString
     private let _value: String
     var value: String { _value }
 

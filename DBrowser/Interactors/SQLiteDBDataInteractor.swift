@@ -26,9 +26,28 @@ struct SQLiteDBDataInteractor: DBDataInteractor {
             }.store(in: cancelBag)
     }
 
-    func loadData<V>(from table: String, itemsPerPage: Int, orderBy: String, afterValue: V?) {
-        _ = sqliteFileRepository.loadData(
-            from: table, itemsPerPage: itemsPerPage, orderBy: orderBy, afterValue: afterValue
-        )
+    func loadDataTo<V>(
+        _ rows: Binding<Loadable<[DBDataRow]>>,
+        from table: String,
+        itemsPerPage: Int,
+        orderBy: String,
+        afterValue: V?
+    )
+    {
+        let cancelBag = CancelBag()
+        rows.wrappedValue.setIsLoading(cancelBag: cancelBag)
+        Just(Void()).subscribe(on: queue)
+            .map { _ in
+                return .loaded(
+                    sqliteFileRepository.loadData(
+                        from: table, itemsPerPage: itemsPerPage, orderBy: orderBy, afterValue: afterValue
+                    )
+                )
+            }
+            .receive(on: DispatchQueue.main)
+            .sink {
+                rows.wrappedValue = $0
+            }
+            .store(in: cancelBag)
     }
 }

@@ -117,6 +117,7 @@ struct SQLiteFileRepository: DBRepository {
         orderBy columnName: String,
         afterValue value: V?
     ) -> [DBDataRow] {
+        guard let headerRow = getTableRowForHeader(table) else { return [] }
         let queryString = queryString(
             from: table, numberOfItems: itemsPerPage, orderBy: columnName, afterValue: value
         )
@@ -125,7 +126,7 @@ struct SQLiteFileRepository: DBRepository {
         guard sqlite3_prepare_v2(db, queryString, -1, &queryStatement, nil) == SQLITE_OK else { return [] }
 
         let columnCount = sqlite3_column_count(queryStatement)
-        var result: [DBDataRow] = []
+        var result: [DBDataRow] = [headerRow]
 
         while sqlite3_step(queryStatement) == SQLITE_ROW {
             var items: [DBDataItemDisplayable] = []
@@ -145,7 +146,7 @@ struct SQLiteFileRepository: DBRepository {
         orderBy columnName: String,
         afterValue value: V?
     ) -> String {
-        "SELECT * FROM \(table);"
+        "SELECT * FROM \(table)"
         + (value.map { " WHERE \(columnName) > \($0)" } ?? "")
         + " ORDER BY \(columnName)"
         + " LIMIT \(numberOfItems);"
@@ -165,6 +166,29 @@ struct SQLiteFileRepository: DBRepository {
         case let type:
             fatalError("unsupported column type: \(type)")
         }
+    }
+
+    private func getTableRowForHeader(_ tableName: String) -> DBDataRow? {
+        let queryString = tableColumnQueryString(tableName)
+        let tableColumnNameRowIndex: Int32 = 1
+
+        var queryStatement: OpaquePointer?
+        guard sqlite3_prepare_v2(db, queryString, -1, &queryStatement, nil) == SQLITE_OK else { return nil }
+        var columnItems: [DBDataItemDisplayable] = []
+
+        while sqlite3_step(queryStatement) == SQLITE_ROW {
+            columnItems.append(
+                DBDataSchemeItem(
+                    value: String(cString: sqlite3_column_text(queryStatement, tableColumnNameRowIndex))
+                )
+            )
+        }
+        guard columnItems.isEmpty == false else { return nil }
+        return DBDataRow(items: columnItems, isHeaderRow: true)
+    }
+
+    private func tableColumnQueryString(_ tableName: String) -> String {
+        "PRAGMA table_info(\(tableName))"
     }
 }
 
