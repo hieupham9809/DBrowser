@@ -63,7 +63,7 @@ extension DBrowserMain {
             VStack {
                 HStack {
                     NavigationLink {
-                        DBrowserTableDetails()
+                        DBrowserTableDetails(table: table)
                     } label: {
                         Text("\(table.name)").font(Font.headline)
                     }
@@ -74,12 +74,12 @@ extension DBrowserMain {
                             ForEach(row.items, id: \.id) { item in
                                 Text("\(item.value)")
                                     .padding(4)
-                                    .frame(width: Constant.defaultColumnWidth)
+                                    .frame(width: Constants.defaultColumnWidth)
                                     .frame(maxHeight: .infinity)
                                     .foregroundColor(row.isHeaderRow ? Color.white : .black)
                                     .overlay(
                                         Rectangle()
-                                            .frame(width: Constant.cellSeparatorWidth, height: nil, alignment: .trailing)
+                                            .frame(width: Constants.cellSeparatorWidth, height: nil, alignment: .trailing)
                                             .foregroundColor(Color.gray),
                                         alignment: .trailing
                                     )
@@ -88,7 +88,7 @@ extension DBrowserMain {
                         .fixedSize()
                         .overlay(
                             Rectangle()
-                                .frame(width: nil, height: Constant.cellSeparatorWidth, alignment: .bottom)
+                                .frame(width: nil, height: Constants.cellSeparatorWidth, alignment: .bottom)
                                 .foregroundColor(Color.gray),
                             alignment: .bottom
                         )
@@ -102,13 +102,13 @@ extension DBrowserMain {
                     }
                     .environment(\.defaultMinListRowHeight, 10)
                     .padding(0)
-                    .frame(width: CGFloat(table.numberOfColumns) * Constant.defaultColumnWidth,
-                           height: Constant.defaultSchemeTableHeight
+                    .frame(width: CGFloat(table.numberOfColumns) * Constants.defaultColumnWidth,
+                           height: Constants.defaultSchemeTableHeight
                     )
                     .overlay(
-                        RoundedRectangle(cornerRadius: Constant.tableCornerRadius).stroke(Color.gray, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: Constants.tableCornerRadius).stroke(Color.gray, lineWidth: 1)
                     )
-                    .cornerRadius(Constant.tableCornerRadius)
+                    .cornerRadius(Constants.tableCornerRadius)
                     .onAppear {
                         UITableView.appearance().separatorStyle = .none
                     }
@@ -123,13 +123,6 @@ extension DBrowserMain {
 }
 
 extension DBrowserMain {
-    private enum Constant {
-        static let defaultColumnWidth: CGFloat = 100
-        static let defaultSchemeTableHeight: CGFloat = 300
-        static let cellSeparatorWidth: CGFloat = 0.5
-        static let tableCornerRadius: CGFloat = 5
-    }
-
     private func isNeedHightlight(by index: Int) -> Bool {
         return index % 2 == 0
     }
