@@ -46,8 +46,7 @@ public struct DBrowserTableDetails: View {
                     $rows,
                     from: table.name,
                     itemsPerPage: itemsPerPage,
-                    orderBy: "content_id",
-                    afterValue: 0
+                    orderBy: nil
                 )
             }
     }
@@ -73,45 +72,57 @@ extension DBrowserTableDetails {
 
 extension DBrowserTableDetails {
     func loadView(_ rows: [DBDataRow]) -> some View {
-        ScrollView(.horizontal) {
-            List(Array(zip(rows.indices, rows)), id: \.1.id) { (index, row) in
-                HStack(spacing: 0) {
-                    ForEach(row.items, id: \.id) { item in
-                        Text("\(item.value)")
-                            .padding(4)
-                            .frame(width: Constants.defaultColumnWidth)
-                            .frame(maxHeight: .infinity)
-                            .foregroundColor(row.isHeaderRow ? Color.white : .black)
-                            .overlay(
-                                Rectangle()
-                                    .frame(width: Constants.cellSeparatorWidth, height: nil, alignment: .trailing)
-                                    .foregroundColor(Color.gray),
-                                alignment: .trailing
-                            )
-                    }
-                }
-                .overlay(
-                    Rectangle()
-                        .frame(width: nil, height: Constants.cellSeparatorWidth, alignment: .bottom)
-                        .foregroundColor(Color.gray),
-                    alignment: .bottom
-                )
-                .background(
-                    row.isHeaderRow ? Color.blue : ((index % 2 == 0) ? Color(hex: "#C1E3FF") : .white)
-                )
-                .listRowInsets(EdgeInsets())
-                .hideRowSeparator()
+        VStack(spacing: 10) {
+            HStack {
+                Text("Header Toolbar here: Filter, search")
             }
-            .environment(\.defaultMinListRowHeight, 10)
-            .padding(0)
-            .frame(width: CGFloat(8/*table.numberOfColumns*/) * Constants.defaultColumnWidth)
-            .overlay(
-                RoundedRectangle(cornerRadius: Constants.tableCornerRadius).stroke(Color.gray, lineWidth: 1)
-            )
-            .cornerRadius(Constants.tableCornerRadius)
-            .listStyle(PlainListStyle())
-            .onAppear {
-                UITableView.appearance().separatorStyle = .none
+            ScrollView(.horizontal) {
+                List(Array(zip(rows.indices, rows)), id: \.1.id) { (index, row) in
+                    HStack(spacing: 0) {
+                        ForEach(row.items, id: \.id) { item in
+                            Text("\(item.value)")
+                                .padding(4)
+                                .frame(width: Constants.defaultColumnWidth)
+                                .frame(maxHeight: Constants.maximumRowHeight)
+                                .foregroundColor(row.isHeaderRow ? Color.white : .black)
+                                .overlay(
+                                    Rectangle()
+                                        .frame(width: Constants.cellSeparatorWidth, height: nil, alignment: .trailing)
+                                        .foregroundColor(Color.gray),
+                                    alignment: .trailing
+                                )
+                        }
+                    }
+                    .overlay(
+                        Rectangle()
+                            .frame(width: nil, height: Constants.cellSeparatorWidth, alignment: .bottom)
+                            .foregroundColor(Color.gray),
+                        alignment: .bottom
+                    )
+                    .background(
+                        row.isHeaderRow ? Color.blue : ((index % 2 == 0) ? Color(hex: "#C1E3FF") : .white)
+                    )
+                    .listRowInsets(EdgeInsets())
+                    .hideRowSeparator()
+                }
+                .environment(\.defaultMinListRowHeight, 10)
+                .padding(0)
+                .frame(width: CGFloat(9/*table.numberOfColumns*/) * Constants.defaultColumnWidth)
+                .overlay(
+                    RoundedRectangle(cornerRadius: Constants.tableCornerRadius).stroke(Color.gray, lineWidth: 1)
+                )
+                .cornerRadius(Constants.tableCornerRadius)
+                .listStyle(PlainListStyle())
+                .onAppear {
+                    UITableView.appearance().separatorStyle = .none
+                }
+            }
+            HStack {
+                Spacer()
+                HStack(spacing: 10) {
+                    Button(action: {}, label: { Text("＜") })
+                    Button(action: {}, label: { Text("＞") })
+                }
             }
         }
         .padding(10)
