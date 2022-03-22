@@ -10,11 +10,10 @@ import Combine
 
 protocol DBRepository {
     func loadSchemes() throws -> [DBDataTable]
-    func loadData<V>(
+    func loadData(
         from table: String,
         itemsPerPage: Int,
-        orderBy columnName: String,
-        afterValue: V?
+        orderBy: (columnName: String, afterValue: Any)?
     ) -> [DBDataRow]
 }
 

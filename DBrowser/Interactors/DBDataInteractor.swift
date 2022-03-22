@@ -10,22 +10,20 @@ import SwiftUI
 
 protocol DBDataInteractor {
     func loadAllTableSchemes(schemes: Binding<Loadable<[DBDataTable]>>)
-    func loadDataTo<V>(
+    func loadDataTo(
         _ rows: Binding<Loadable<[DBDataRow]>>,
         from table: String,
         itemsPerPage: Int,
-        orderBy: String,
-        afterValue: V?
+        orderBy: (columnName: String, afterValue: Any)?
     )
 }
 
 struct InitialDBDataInteractor: DBDataInteractor {
     func loadAllTableSchemes(schemes: Binding<Loadable<[DBDataTable]>>) { }
-    func loadDataTo<V>(
+    func loadDataTo(
         _ rows: Binding<Loadable<[DBDataRow]>>,
         from table: String,
         itemsPerPage: Int,
-        orderBy: String,
-        afterValue: V?
+        orderBy: (columnName: String, afterValue: Any)?
     ) { }
 }

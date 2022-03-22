@@ -111,15 +111,15 @@ struct SQLiteFileRepository: DBRepository {
 
     // MARK: Retrieve table data
 
-    func loadData<V>(
+    func loadData(
         from table: String,
         itemsPerPage: Int,
-        orderBy columnName: String,
-        afterValue value: V?
+        orderBy: (columnName: String, afterValue: Any)? = (columnName: "rowid", afterValue: 0)
     ) -> [DBDataRow] {
         guard let headerRow = getTableRowForHeader(table) else { return [] }
         let queryString = queryString(
-            from: table, numberOfItems: itemsPerPage, orderBy: columnName, afterValue: value
+            from: table, numberOfItems: itemsPerPage,
+            orderBy: orderBy?.columnName ?? "rowid", afterValue: orderBy?.afterValue ?? 0
         )
         var queryStatement: OpaquePointer?
 
@@ -140,14 +140,14 @@ struct SQLiteFileRepository: DBRepository {
         return result
     }
 
-    private func queryString<V>(
+    private func queryString(
         from table: String,
         numberOfItems: Int,
         orderBy columnName: String,
-        afterValue value: V?
+        afterValue: Any
     ) -> String {
         "SELECT * FROM \(table)"
-        + (value.map { " WHERE \(columnName) > \($0)" } ?? "")
+        + " WHERE \(columnName) > \(afterValue)"
         + " ORDER BY \(columnName)"
         + " LIMIT \(numberOfItems);"
     }
