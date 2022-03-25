@@ -15,6 +15,7 @@ public struct DBrowserTableDetails: View {
     let itemsPerPage: Int = 20
 
     @State private(set) var rows: Loadable<[DBDataRow]>
+    @State private(set) var currentPage: Int = 1
 
     init(table: DBDataTable) {
         self.table = table
@@ -117,13 +118,7 @@ extension DBrowserTableDetails {
                     UITableView.appearance().separatorStyle = .none
                 }
             }
-            HStack {
-                Spacer()
-                HStack(spacing: 10) {
-                    Button(action: {}, label: { Text("＜") })
-                    Button(action: {}, label: { Text("＞") })
-                }
-            }
+            PagingControllerView(currentPage: $currentPage, totalPage: 10)
         }
         .padding(10)
     }
