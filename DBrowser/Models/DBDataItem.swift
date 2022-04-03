@@ -9,6 +9,7 @@ import Foundation
 
 protocol DBDataItemDisplayable {
     var value: String { get }
+    var actualValue: Any { get }
 }
 
 extension DBDataItemDisplayable {
@@ -22,6 +23,10 @@ struct DBDataSchemeItem: DBDataItemDisplayable {
     init(value: String) {
         _value = value
     }
+
+    var actualValue: Any {
+        _value
+    }
 }
 
 struct DBDataItem<T: CustomStringConvertible>: DBDataItemDisplayable {
@@ -33,8 +38,16 @@ struct DBDataItem<T: CustomStringConvertible>: DBDataItemDisplayable {
     init(value: T?) {
         _value = value
     }
+
+    var actualValue: Any {
+        _value ?? "nil"
+    }
 }
 
 struct DBDataNilItem: DBDataItemDisplayable {
     let value: String = "nil"
+
+    var actualValue: Any {
+        value
+    }
 }

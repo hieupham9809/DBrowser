@@ -9,6 +9,15 @@ import Foundation
 import Combine
 import SQLite3
 
+enum DBOrder: String, CustomStringConvertible {
+    case asc = "ASC"
+    case desc = "DESC"
+
+    var description: String {
+        rawValue
+    }
+}
+
 struct SQLiteFileRepository: DBRepository {
     private var db: OpaquePointer?
 
@@ -30,6 +39,13 @@ struct SQLiteFileRepository: DBRepository {
         .columnIsNotNull: "p.[notnull] AS col_is_not_null"
     ]
 
+    private func tableColumnQueryString(_ tableName: String) -> String {
+        "PRAGMA table_info(\(tableName))"
+    }
+}
+
+// MARK: Scheme table
+extension SQLiteFileRepository {
     func loadSchemes() throws -> [DBDataTable] {
         let queryString = loadSchemeQueryString()
         var queryStatement: OpaquePointer?
@@ -51,18 +67,20 @@ struct SQLiteFileRepository: DBRepository {
                 currentTable = DBDataTable(name: tableName, rows: [])
 
                 // append column header
-                currentTable?.rows.append(DBDataRow(
-                    items: [
-                        .columnId,
-                        .columnName,
-                        .columnType,
-                        .columnIsPK,
-                        .columnDefaultValue,
-                        .columnIsNotNull
-                    ].map { (column: SchemeColumnName) -> DBDataSchemeItem in
-                        DBDataSchemeItem(value: column.columnDesc)
-                    },
-                    isHeaderRow: true)
+                currentTable?.rows.append(
+                    DBDataRow(
+                        items: [
+                            .columnId,
+                            .columnName,
+                            .columnType,
+                            .columnIsPK,
+                            .columnDefaultValue,
+                            .columnIsNotNull
+                        ].map { (column: SchemeColumnName) -> DBDataSchemeItem in
+                            DBDataSchemeItem(value: column.columnDesc)
+                        },
+                        isHeaderRow: true, rowId: nil
+                    )
                 )
                 currentTable?.rows.append(extractSchemeRowModel(from: queryStatement))
             }
@@ -105,21 +123,25 @@ struct SQLiteFileRepository: DBRepository {
             ].map { item in
                 DBDataSchemeItem(value: item.flatMap { String(cString: $0) } ?? "unknown")
             },
-            isHeaderRow: false
+            isHeaderRow: false,
+            rowId: nil
         )
     }
+}
 
+// MARK: Table data
+extension SQLiteFileRepository {
     // MARK: Retrieve table data
-
     func loadData(
         from table: String,
         itemsPerPage: Int,
-        orderBy: (columnName: String, afterValue: Any)? = (columnName: "rowid", afterValue: 0)
+        order: DBOrder,
+        by values: [String: Any]? = nil
     ) -> [DBDataRow] {
         guard let headerRow = getTableRowForHeader(table) else { return [] }
-        let queryString = queryString(
+        let queryString = loadDataQueryString(
             from: table, numberOfItems: itemsPerPage,
-            orderBy: orderBy?.columnName ?? "rowid", afterValue: orderBy?.afterValue ?? 0
+            order: order, by: values ?? [PrimaryColumns.rowid: 1]
         )
         var queryStatement: OpaquePointer?
 
@@ -130,25 +152,30 @@ struct SQLiteFileRepository: DBRepository {
 
         while sqlite3_step(queryStatement) == SQLITE_ROW {
             var items: [DBDataItemDisplayable] = []
-            for index in 0..<columnCount {
+            let rowId = getDBItem(from: queryStatement, columnIndex: 0)
+            for index in 1..<columnCount { // TODO: `WITHOUT ROWID` table should start at 0
                 items.append(getDBItem(from: queryStatement, columnIndex: index))
             }
             guard items.isEmpty == false else { continue }
-            result.append(DBDataRow(items: items, isHeaderRow: false))
+            result.append(DBDataRow(items: items, isHeaderRow: false, rowId: rowId))
         }
         print("DATA: \(result)")
         return result
     }
 
-    private func queryString(
+    private func loadDataQueryString(
         from table: String,
         numberOfItems: Int,
-        orderBy columnName: String,
-        afterValue: Any
+        order: DBOrder,
+        by values: [String: Any]
     ) -> String {
-        "SELECT * FROM \(table)"
-        + " WHERE \(columnName) > \(afterValue)"
-        + " ORDER BY \(columnName)"
+        let keys = values.keys
+        return "SELECT \(PrimaryColumns.rowid), * FROM \(table)"
+        + """
+         WHERE (\(keys.joined(separator: ", "))) >=
+        (\(keys.compactMap { key in values[key].map { "\($0)" } }.joined(separator: ", ")))
+        """
+        + " ORDER BY \(values.keys.map { "\($0) \(order)" }.joined(separator: ", "))"
         + " LIMIT \(numberOfItems);"
     }
 
@@ -184,11 +211,64 @@ struct SQLiteFileRepository: DBRepository {
             )
         }
         guard columnItems.isEmpty == false else { return nil }
-        return DBDataRow(items: columnItems, isHeaderRow: true)
+        return DBDataRow(items: columnItems, isHeaderRow: true, rowId: nil)
+    }
+}
+
+// MARK: table paging info
+extension SQLiteFileRepository {
+
+    func getPageInfo(from table: String, itemsPerPage: Int, orderBy columns: [String]) -> [[String: Any]] {
+        let totalRowCount = getTotalRowCount(from: table)
+        guard totalRowCount > 0 else { return [] }
+        let numberOfPages = Int((CGFloat(totalRowCount) / CGFloat(itemsPerPage)).rounded(.up))
+        var offsets: [Int] = []
+
+        for page in 0..<numberOfPages {
+            offsets.append(page * itemsPerPage + 1)
+        }
+
+        let queryString = getRowQueryString(from: table, totalRowCount: totalRowCount, orderBy: columns, by: offsets)
+        var queryStatement: OpaquePointer?
+
+        guard sqlite3_prepare_v2(db, queryString, -1, &queryStatement, nil) == SQLITE_OK else { return [] }
+        var result: [[String: Any]] = []
+
+        while sqlite3_step(queryStatement) == SQLITE_ROW {
+            var rowPageInfo: [String: Any] = [:]
+            columns.enumerated().forEach { index, column in
+                rowPageInfo[column] = getDBItem(from: queryStatement, columnIndex: Int32(index)).actualValue
+            }
+            result.append(rowPageInfo)
+        }
+        print("paging info: \(result)")
+        return result
     }
 
-    private func tableColumnQueryString(_ tableName: String) -> String {
-        "PRAGMA table_info(\(tableName))"
+    private func getRowQueryString(
+        from table: String, totalRowCount: Int, orderBy columns: [String], by offsets: [Int]
+    ) -> String {
+        return """
+            SELECT \(columns.map { "t.\($0)" }.joined(separator: ", "))
+            FROM \(table) t
+            WHERE (
+                    SELECT COUNT(*) FROM \(table)
+                    WHERE (\(columns.joined(separator: ", "))) > (\(columns.map { "t.\($0)" }.joined(separator: ", ")))
+            ) IN (\(offsets.map { "\(totalRowCount - $0)" }.joined(separator: ", ")))
+            """
+    }
+
+    private func getTotalRowCount(from table: String) -> Int {
+        let queryString = countDataQueryString(from: table)
+        var queryStatement: OpaquePointer?
+        guard sqlite3_prepare_v2(db, queryString, -1, &queryStatement, nil) == SQLITE_OK,
+              sqlite3_step(queryStatement) == SQLITE_ROW
+        else { return 0 }
+        return Int(sqlite3_column_int(queryStatement, 0))
+    }
+
+    private func countDataQueryString(from table: String) -> String {
+        "SELECT count(*) from \(table)"
     }
 }
 
@@ -219,5 +299,11 @@ extension SQLiteFileRepository {
 
     private func index(by column: SchemeColumnName) -> Int32 {
         return Int32(column.rawValue)
+    }
+}
+
+extension SQLiteFileRepository {
+    enum PrimaryColumns {
+        static let rowid = "rowid"
     }
 }

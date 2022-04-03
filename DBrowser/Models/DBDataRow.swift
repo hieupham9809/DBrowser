@@ -8,9 +8,13 @@
 import Foundation
 
 struct DBDataRow {
-    let id: String = UUID().uuidString
     let items: [DBDataItemDisplayable]
     let isHeaderRow: Bool
+    let rowId: DBDataItemDisplayable?
 }
 
-extension DBDataRow: Identifiable {}
+extension DBDataRow: Identifiable {
+    var id: String {
+        rowId?.value ?? "unsupported"
+    }
+}

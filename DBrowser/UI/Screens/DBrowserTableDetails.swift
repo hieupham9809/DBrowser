@@ -15,8 +15,15 @@ public struct DBrowserTableDetails: View {
     let itemsPerPage: Int = 20
 
     @State private(set) var rows: Loadable<[DBDataRow]>
-    @State private(set) var currentPage: Int = 1
+    @State private(set) var currentPage: Int?
+    @State private(set) var totalPage: Int = 0
 
+    @State private var pageMapping: [[String: Any]] = [["rowid": 0]]
+    private var columnToFilter: String?
+
+    // table doesn't need rowid will be handled separately (must have `columnToFilter`)
+    private var tableNeedsRowId: Bool = true
+    
     init(table: DBDataTable) {
         self.table = table
         self._rows = .init(initialValue: .notRequested)
@@ -43,11 +50,28 @@ public struct DBrowserTableDetails: View {
         content
         // enable for easier debugging
             .onAppear {
+                let interactor = debugInjected.interactors.dbDataInteractor
+                let orderByColumns = [tableNeedsRowId ? interactor.columnForRowId() : nil, columnToFilter]
+                    .compactMap { $0 }
+
+                pageMapping = interactor.getPageInfo(
+                    from: table.name, itemsPerPage: itemsPerPage, orderBy: orderByColumns
+                )
+
+                totalPage = pageMapping.count
+                currentPage = 1
+            }
+            .onChange(of: currentPage) { currentPage in
+                guard let currentPage = currentPage else {
+                    return
+                }
+
                 debugInjected.interactors.dbDataInteractor.loadDataTo(
                     $rows,
                     from: table.name,
                     itemsPerPage: itemsPerPage,
-                    orderBy: nil
+                    order: .asc,
+                    by: getFilterValues(by: currentPage)
                 )
             }
     }
@@ -66,6 +90,11 @@ public struct DBrowserTableDetails: View {
 extension DBrowserTableDetails {
     func loadingView() -> some View {
         ActivityIndicatorView()
+    }
+
+    private func getFilterValues(by page: Int) -> [String: Any]? {
+        guard page - 1 >= 0, page - 1 < pageMapping.count else { return nil }
+        return pageMapping[page - 1]
     }
 }
 
@@ -118,7 +147,7 @@ extension DBrowserTableDetails {
                     UITableView.appearance().separatorStyle = .none
                 }
             }
-            PagingControllerView(currentPage: $currentPage, totalPage: 10)
+            PagingControllerView(currentPage: $currentPage, totalPage: $totalPage)
         }
         .padding(10)
     }

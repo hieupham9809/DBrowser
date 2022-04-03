@@ -14,8 +14,11 @@ protocol DBDataInteractor {
         _ rows: Binding<Loadable<[DBDataRow]>>,
         from table: String,
         itemsPerPage: Int,
-        orderBy: (columnName: String, afterValue: Any)?
+        order: DBOrder,
+        by values: [String: Any]?
     )
+    func getPageInfo(from table: String, itemsPerPage: Int, orderBy columns: [String]) -> [[String : Any]]
+    func columnForRowId() -> String?
 }
 
 struct InitialDBDataInteractor: DBDataInteractor {
@@ -24,6 +27,9 @@ struct InitialDBDataInteractor: DBDataInteractor {
         _ rows: Binding<Loadable<[DBDataRow]>>,
         from table: String,
         itemsPerPage: Int,
-        orderBy: (columnName: String, afterValue: Any)?
+        order: DBOrder,
+        by values: [String: Any]?
     ) { }
+    func getPageInfo(from table: String, itemsPerPage: Int, orderBy columns: [String]) -> [[String : Any]] { [] }
+    func columnForRowId() -> String? { nil }
 }

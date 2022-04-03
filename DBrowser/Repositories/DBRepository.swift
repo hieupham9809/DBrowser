@@ -13,8 +13,10 @@ protocol DBRepository {
     func loadData(
         from table: String,
         itemsPerPage: Int,
-        orderBy: (columnName: String, afterValue: Any)?
+        order: DBOrder,
+        by values: [String: Any]?
     ) -> [DBDataRow]
+    func getPageInfo(from table: String, itemsPerPage: Int, orderBy columns: [String]) -> [[String : Any]]
 }
 
 enum DatabaseError: Error {

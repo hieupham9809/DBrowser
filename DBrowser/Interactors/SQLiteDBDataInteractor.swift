@@ -30,7 +30,8 @@ struct SQLiteDBDataInteractor: DBDataInteractor {
         _ rows: Binding<Loadable<[DBDataRow]>>,
         from table: String,
         itemsPerPage: Int,
-        orderBy: (columnName: String, afterValue: Any)?
+        order: DBOrder,
+        by values: [String: Any]?
     )
     {
         let cancelBag = CancelBag()
@@ -39,7 +40,7 @@ struct SQLiteDBDataInteractor: DBDataInteractor {
             .map { _ in
                 return .loaded(
                     sqliteFileRepository.loadData(
-                        from: table, itemsPerPage: itemsPerPage, orderBy: orderBy
+                        from: table, itemsPerPage: itemsPerPage, order: order, by: values
                     )
                 )
             }
@@ -48,5 +49,13 @@ struct SQLiteDBDataInteractor: DBDataInteractor {
                 rows.wrappedValue = $0
             }
             .store(in: cancelBag)
+    }
+
+    func getPageInfo(from table: String, itemsPerPage: Int, orderBy columns: [String]) -> [[String : Any]] {
+        sqliteFileRepository.getPageInfo(from: table, itemsPerPage: itemsPerPage, orderBy: columns)
+    }
+
+    func columnForRowId() -> String? {
+        SQLiteFileRepository.PrimaryColumns.rowid
     }
 }
