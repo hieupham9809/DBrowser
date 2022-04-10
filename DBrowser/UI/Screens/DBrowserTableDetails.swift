@@ -19,7 +19,7 @@ public struct DBrowserTableDetails: View {
     @State private(set) var totalPage: Int = 0
 
     @State private var pageMapping: [[String: Any]] = [["rowid": 0]]
-    private var columnToFilter: String?
+    @State private var columnToFilter: String?
 
     // table doesn't need rowid will be handled separately (must have `columnToFilter`)
     private var tableNeedsRowId: Bool = true
@@ -110,17 +110,25 @@ extension DBrowserTableDetails {
                 List(Array(zip(rows.indices, rows)), id: \.1.id) { (index, row) in
                     HStack(spacing: 0) {
                         ForEach(row.items, id: \.id) { item in
-                            Text("\(item.value)")
-                                .padding(4)
+                            if row.isHeaderRow {
+                                HeaderItemView(
+                                    content: { cellContentBuilder(from: item, isHeaderRow: row.isHeaderRow) },
+                                    itemValue: item.value,
+                                    currentOrderColumn: $columnToFilter,
+                                    action: { column in
+                                        columnToFilter = column
+                                    }
+                                )
                                 .frame(width: Constants.defaultColumnWidth)
                                 .frame(maxHeight: Constants.maximumRowHeight)
-                                .foregroundColor(row.isHeaderRow ? Color.white : .black)
-                                .overlay(
-                                    Rectangle()
-                                        .frame(width: Constants.cellSeparatorWidth, height: nil, alignment: .trailing)
-                                        .foregroundColor(Color.gray),
-                                    alignment: .trailing
-                                )
+                                .overlayCellWithBorder()
+                            }
+                            else {
+                                cellContentBuilder(from: item, isHeaderRow: row.isHeaderRow)
+                                    .frame(width: Constants.defaultColumnWidth)
+                                    .frame(maxHeight: Constants.maximumRowHeight)
+                                    .overlayCellWithBorder()
+                            }
                         }
                     }
                     .overlay(
@@ -150,6 +158,12 @@ extension DBrowserTableDetails {
             PagingControllerView(currentPage: $currentPage, totalPage: $totalPage)
         }
         .padding(10)
+    }
+
+    private func cellContentBuilder(from item: DBDataItemDisplayable, isHeaderRow: Bool) -> some View {
+        Text("\(item.value)")
+            .foregroundColor(isHeaderRow ? Color.white : .black)
+            .padding(4)
     }
 }
 

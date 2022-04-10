@@ -35,6 +35,17 @@ struct NavigationBarTitle: ViewModifier {
     }
 }
 
+struct CellWithBorder: ViewModifier {
+    func body(content: Content) -> some View {
+        content.overlay(
+            Rectangle()
+                .frame(width: Constants.cellSeparatorWidth, height: nil, alignment: .trailing)
+                .foregroundColor(Color.gray),
+            alignment: .trailing
+        )
+    }
+}
+
 extension View {
     func hideRowSeparator() -> some View {
         ModifiedContent(content: self, modifier: ListRowSeparatorVisibility())
@@ -44,5 +55,11 @@ extension View {
 extension View {
     func compatNavigationTitle(_ title: String, displayMode mode: NavigationBarItem.TitleDisplayMode) -> some View {
         ModifiedContent(content: self, modifier: NavigationBarTitle(title: title, displayMode: mode))
+    }
+}
+
+extension View {
+    func overlayCellWithBorder() -> some View {
+        ModifiedContent(content: self, modifier: CellWithBorder())
     }
 }
