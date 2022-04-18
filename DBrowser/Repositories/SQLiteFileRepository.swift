@@ -173,10 +173,15 @@ extension SQLiteFileRepository {
         return "SELECT \(PrimaryColumns.rowid), * FROM \(table)"
         + """
          WHERE (\(keys.joined(separator: ", "))) >=
-        (\(keys.compactMap { key in values[key].map { "\($0)" } }.joined(separator: ", ")))
+        (\(keys.compactMap { key in values[key].map { "\(convert($0))" } }.joined(separator: ", ")))
         """
         + " ORDER BY \(values.keys.map { "\($0) \(order)" }.joined(separator: ", "))"
         + " LIMIT \(numberOfItems);"
+    }
+
+    private func convert(_ value: Any) -> Any {
+        if let text = value as? String { return "'\(text)'"}
+        return value
     }
 
     func getDBItem(from statement: OpaquePointer?, columnIndex: Int32) -> DBDataItemDisplayable {
@@ -229,6 +234,7 @@ extension SQLiteFileRepository {
         }
 
         let queryString = getRowQueryString(from: table, totalRowCount: totalRowCount, orderBy: columns, by: offsets)
+        print("QUERY: \(queryString)")
         var queryStatement: OpaquePointer?
 
         guard sqlite3_prepare_v2(db, queryString, -1, &queryStatement, nil) == SQLITE_OK else { return [] }
@@ -248,6 +254,7 @@ extension SQLiteFileRepository {
     private func getRowQueryString(
         from table: String, totalRowCount: Int, orderBy columns: [String], by offsets: [Int]
     ) -> String {
+        let order: DBOrder = .asc
         return """
             SELECT \(columns.map { "t.\($0)" }.joined(separator: ", "))
             FROM \(table) t
@@ -255,6 +262,7 @@ extension SQLiteFileRepository {
                     SELECT COUNT(*) FROM \(table)
                     WHERE (\(columns.joined(separator: ", "))) > (\(columns.map { "t.\($0)" }.joined(separator: ", ")))
             ) IN (\(offsets.map { "\(totalRowCount - $0)" }.joined(separator: ", ")))
+            ORDER BY \(columns.map { "t.\($0) \(order)" }.joined(separator: ", "))
             """
     }
 
