@@ -15,13 +15,13 @@ public struct DBrowserTableDetails: View {
     let itemsPerPage: Int = 20
 
     @State private(set) var rows: Loadable<[DBDataRow]>
-    @State private(set) var currentPage: Int?
+    @State private(set) var currentPage: Int? = 1
     @State private(set) var totalPage: Int = 0
 
     @State private var pageMapping: [[String: Any]] = [["rowid": 0]]
-    @State private var columnToFilter: String?
+    @State private var columnToSort: SortingValue?
 
-    // table doesn't need rowid will be handled separately (must have `columnToFilter`)
+    // table doesn't need rowid will be handled separately (must have `columnToSort`)
     private var tableNeedsRowId: Bool = true
     
     init(table: DBDataTable) {
@@ -50,30 +50,20 @@ public struct DBrowserTableDetails: View {
         content
         // enable for easier debugging
             .onAppear {
-                let interactor = debugInjected.interactors.dbDataInteractor
-                let orderByColumns = [tableNeedsRowId ? interactor.columnForRowId() : nil, columnToFilter]
-                    .compactMap { $0 }
-
-                pageMapping = interactor.getPageInfo(
-                    from: table.name, itemsPerPage: itemsPerPage, orderBy: orderByColumns
-                )
-
-                totalPage = pageMapping.count
-                currentPage = 1
+                loadPageInfos()
             }
             .onChange(of: currentPage) { currentPage in
                 guard let currentPage = currentPage else {
                     return
                 }
 
-                debugInjected.interactors.dbDataInteractor.loadDataTo(
-                    $rows,
-                    from: table.name,
-                    itemsPerPage: itemsPerPage,
-                    order: .asc,
-                    by: getFilterValues(by: currentPage)
-                )
+                loadPageData(by: currentPage)
             }
+            .onChange(of: columnToSort) { column in
+                guard let _ = column else { return }
+                loadPageInfos()
+            }
+
     }
 
     private var content: AnyView {
@@ -92,9 +82,35 @@ extension DBrowserTableDetails {
         ActivityIndicatorView()
     }
 
-    private func getFilterValues(by page: Int) -> [String: Any]? {
+    private func getConstraintValues(by page: Int) -> [String: Any]? {
         guard page - 1 >= 0, page - 1 < pageMapping.count else { return nil }
         return pageMapping[page - 1]
+    }
+
+    private func loadPageInfos() {
+        let interactor = debugInjected.interactors.dbDataInteractor
+        let orderByColumns = [columnToSort?.columnValue, tableNeedsRowId ? interactor.columnForRowId() : nil]
+            .compactMap { $0 }
+
+        pageMapping = interactor.getPageInfo(
+            from: table.name, itemsPerPage: itemsPerPage, orderBy: orderByColumns
+        )
+
+        totalPage = pageMapping.count
+
+        if let currentPage = currentPage {
+            loadPageData(by: currentPage)
+        }
+    }
+
+    private func loadPageData(by page: Int) {
+        debugInjected.interactors.dbDataInteractor.loadDataTo(
+            $rows,
+            from: table.name,
+            itemsPerPage: itemsPerPage,
+            order: columnToSort?.order ?? .asc,
+            by: getConstraintValues(by: page)
+        )
     }
 }
 
@@ -110,25 +126,10 @@ extension DBrowserTableDetails {
                 List(Array(zip(rows.indices, rows)), id: \.1.id) { (index, row) in
                     HStack(spacing: 0) {
                         ForEach(row.items, id: \.id) { item in
-                            if row.isHeaderRow {
-                                HeaderItemView(
-                                    content: { cellContentBuilder(from: item, isHeaderRow: row.isHeaderRow) },
-                                    itemValue: item.value,
-                                    currentOrderColumn: $columnToFilter,
-                                    action: { column in
-                                        columnToFilter = column
-                                    }
-                                )
+                            cellBuilder(from: item, isHeaderRow: row.isHeaderRow)
                                 .frame(width: Constants.defaultColumnWidth)
                                 .frame(maxHeight: Constants.maximumRowHeight)
                                 .overlayCellWithBorder()
-                            }
-                            else {
-                                cellContentBuilder(from: item, isHeaderRow: row.isHeaderRow)
-                                    .frame(width: Constants.defaultColumnWidth)
-                                    .frame(maxHeight: Constants.maximumRowHeight)
-                                    .overlayCellWithBorder()
-                            }
                         }
                     }
                     .overlay(
@@ -164,6 +165,21 @@ extension DBrowserTableDetails {
         Text("\(item.value)")
             .foregroundColor(isHeaderRow ? Color.white : .black)
             .padding(4)
+    }
+
+    private func cellBuilder(from item: DBDataItemDisplayable, isHeaderRow: Bool) -> some View {
+        Group {
+            if isHeaderRow {
+                HeaderItemView(
+                    content: { cellContentBuilder(from: item, isHeaderRow: isHeaderRow) },
+                    itemValue: item.value,
+                    currentOrderColumn: $columnToSort
+                )
+            }
+            else {
+                cellContentBuilder(from: item, isHeaderRow: isHeaderRow)
+            }
+        }
     }
 }
 

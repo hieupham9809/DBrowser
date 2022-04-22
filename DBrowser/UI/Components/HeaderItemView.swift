@@ -9,20 +9,18 @@ import SwiftUI
 
 struct HeaderItemView<Content: View>: View {
     @ViewBuilder let content: Content
-    @Binding var currentOrderColumn: String?
+    @Binding var currentOrderColumn: SortingValue?
     let itemValue: String
-    let orderAction: ((_ column: String) -> Void)
+
 
     init(
         @ViewBuilder content: () -> Content,
         itemValue: String,
-        currentOrderColumn: Binding<String?>,
-        action: @escaping (_ column: String) -> Void
+        currentOrderColumn: Binding<SortingValue?>
     ) {
         self.content = content()
-        self.itemValue = itemValue
         self._currentOrderColumn = currentOrderColumn
-        self.orderAction = action
+        self.itemValue = itemValue
     }
 
     var body: some View {
@@ -30,13 +28,20 @@ struct HeaderItemView<Content: View>: View {
             HStack { content }
                 .padding(EdgeInsets(top: 14, leading: 14, bottom: 0, trailing: 0))
 
-            if currentOrderColumn == itemValue {
-                Image(systemName: "line.3.horizontal.decrease.circle.fill")
-                    .renderingMode(.template)
-                    .foregroundColor(.white)
+            if currentOrderColumn?.columnValue == itemValue {
+                Image(
+                    systemName: currentOrderColumn?.order == .desc ? "arrow.down.circle.fill" : "arrow.up.circle.fill"
+                )
+                .renderingMode(.template)
+                .foregroundColor(.white)
             }
             Image("").resizable().onTapGesture { // using button didn't work as expected
-                orderAction(itemValue)
+                if currentOrderColumn?.columnValue == itemValue {
+                    currentOrderColumn?.toggle()
+                }
+                else {
+                    currentOrderColumn = SortingValue(order: .asc, columnValue: itemValue)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -46,14 +51,13 @@ struct HeaderItemView<Content: View>: View {
 }
 
 struct HeaderItemView_Previews: PreviewProvider {
-    @State static var currentOrderColumn: String? = "column2"
+    @State static var currentOrderColumn: SortingValue? = SortingValue(order: .asc, columnValue: "column1")
     static var previews: some View {
         ContentView {
             HeaderItemView(
                 content: { Text("Header") },
                 itemValue: "column1",
-                currentOrderColumn: $currentOrderColumn,
-                action: { _ in }
+                currentOrderColumn: $currentOrderColumn
             )
         }
         .frame(width: 200, height: 100, alignment: .center)
