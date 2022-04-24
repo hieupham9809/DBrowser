@@ -44,6 +44,7 @@ public struct DBrowserTableDetails: View {
         let interactors = DIContainer.Interactors(dbDataInteractor: dbDataInteractor)
         debugInjected = DIContainer(interactors: interactors)
     }
+    
     var debugInjected: DIContainer!
 
     public var body: some View {
@@ -88,7 +89,7 @@ extension DBrowserTableDetails {
     }
 
     private func loadPageInfos() {
-        let interactor = debugInjected.interactors.dbDataInteractor
+        let interactor = injected.interactors.dbDataInteractor
         let orderByColumns = [columnToSort?.columnValue, tableNeedsRowId ? interactor.columnForRowId() : nil]
             .compactMap { $0 }
 
@@ -104,7 +105,7 @@ extension DBrowserTableDetails {
     }
 
     private func loadPageData(by page: Int) {
-        debugInjected.interactors.dbDataInteractor.loadDataTo(
+        injected.interactors.dbDataInteractor.loadDataTo(
             $rows,
             from: table.name,
             itemsPerPage: itemsPerPage,
@@ -146,7 +147,7 @@ extension DBrowserTableDetails {
                 }
                 .environment(\.defaultMinListRowHeight, 10)
                 .padding(0)
-                .frame(width: CGFloat(9/*table.numberOfColumns*/) * Constants.defaultColumnWidth)
+                .frame(width: CGFloat(table.numberOfColumns) * Constants.defaultColumnWidth)
                 .overlay(
                     RoundedRectangle(cornerRadius: Constants.tableCornerRadius).stroke(Color.gray, lineWidth: 1)
                 )

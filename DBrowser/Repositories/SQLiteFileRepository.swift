@@ -124,7 +124,7 @@ extension SQLiteFileRepository {
                 DBDataSchemeItem(value: item.flatMap { String(cString: $0) } ?? "unknown")
             },
             isHeaderRow: false,
-            rowId: nil
+            rowId: DBDataSchemeItem(value: UUID().uuidString)
         )
     }
 }

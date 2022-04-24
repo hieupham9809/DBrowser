@@ -30,11 +30,11 @@ public struct DBrowserMain: View {
     public var body: some View {
         NavigationView {
             self.content
-                .inject(container)
                 .onAppear {
                     container.interactors.dbDataInteractor.loadAllTableSchemes(schemes: $schemeTables)
                 }
         }
+        .inject(container)
     }
 
     // WARNING: using AnyView is not good for SwiftUI's performance
