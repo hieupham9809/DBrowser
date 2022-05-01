@@ -69,53 +69,49 @@ extension DBrowserMain {
                     }
                 }
                 ScrollView(.horizontal) {
-                    List(Array(zip(table.rows.indices, table.rows)), id: \.1.id) { index, row in
-                        HStack(spacing: 0) {
-                            ForEach(row.items, id: \.id) { item in
-                                Text("\(item.value)")
-                                    .padding(4)
-                                    .frame(width: Constants.defaultColumnWidth)
-                                    .frame(maxHeight: .infinity)
-                                    .foregroundColor(row.isHeaderRow ? Color.white : .black)
-                                    .overlay(
-                                        Rectangle()
-                                            .frame(width: Constants.cellSeparatorWidth, height: nil, alignment: .trailing)
-                                            .foregroundColor(Color.gray),
-                                        alignment: .trailing
-                                    )
+                    VStack(spacing: 0) {
+                        ForEach(Array(zip(table.rows.indices, table.rows)), id: \.1.id) { index, row in
+                            HStack(spacing: 0) {
+                                ForEach(row.items, id: \.id) { item in
+                                    Text("\(item.value)")
+                                        .padding(4)
+                                        .frame(width: Constants.defaultColumnWidth)
+                                        .frame(maxHeight: .infinity)
+                                        .foregroundColor(row.isHeaderRow ? Color.white : .black)
+                                        .overlay(
+                                            Rectangle()
+                                                .frame(width: Constants.cellSeparatorWidth, height: nil, alignment: .trailing)
+                                                .foregroundColor(Color.gray),
+                                            alignment: .trailing
+                                        )
+                                }
                             }
+                            .fixedSize()
+                            .overlay(
+                                Rectangle()
+                                    .frame(width: nil, height: Constants.cellSeparatorWidth, alignment: .bottom)
+                                    .foregroundColor(Color.gray),
+                                alignment: .bottom
+                            )
+                            .background(row.isHeaderRow
+                                        ? Color.blue
+                                        : (isNeedHightlight(by: index) ? Color(hex: "#C1E3FF") : .white)
+                            )
+                            .clipped()
                         }
-                        .fixedSize()
-                        .overlay(
-                            Rectangle()
-                                .frame(width: nil, height: Constants.cellSeparatorWidth, alignment: .bottom)
-                                .foregroundColor(Color.gray),
-                            alignment: .bottom
-                        )
-                        .background(row.isHeaderRow
-                                    ? Color.blue
-                                    : (isNeedHightlight(by: index) ? Color(hex: "#C1E3FF") : .white)
-                        )
-                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                        .hideRowSeparator()
-                        .clipped()
-                    }
-                    .environment(\.defaultMinListRowHeight, 10)
-                    .padding(0)
-                    .frame(width: CGFloat(table.numberOfColumns) * Constants.defaultColumnWidth,
-                           height: Constants.defaultSchemeTableHeight
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: Constants.tableCornerRadius).stroke(Color.gray, lineWidth: 1)
-                    )
-                    .cornerRadius(Constants.tableCornerRadius)
-                    .onAppear {
-                        UITableView.appearance().separatorStyle = .none
+                        .padding(0)
                     }
                 }
                 .padding(0)
-                .listRowInsets(EdgeInsets())
-            }.hideRowSeparator()
+                .border(Color.gray, width: 0.5)
+                .cornerRadius(Constants.tableCornerRadius)
+                .clipped()
+                .overlay(
+                    RoundedRectangle(cornerRadius: Constants.tableCornerRadius).stroke(Color.gray, lineWidth: 1)
+                )
+            }
+            .hideRowSeparator()
+
         }
         .listStyle(PlainListStyle())
         .compatNavigationTitle("All scheme tables", displayMode: .large)
