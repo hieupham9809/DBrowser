@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-public struct DBrowserTableDetails: View {
+struct DBrowserTableDetails: View {
     @Environment(\.injected) private var injected: DIContainer
 
     let table: DBDataTable
@@ -35,7 +35,7 @@ public struct DBrowserTableDetails: View {
         self._rows = .init(initialValue: .loaded(rows))
     }
 
-    public init(tableName: String, dbFilePath: String) {
+    init(tableName: String, dbFilePath: String) {
         self.table = DBDataTable(name: tableName, rows: [])
         self._rows = .init(initialValue: .notRequested)
         let dbDataInteractor = try! SQLiteDBDataInteractor(
@@ -47,7 +47,7 @@ public struct DBrowserTableDetails: View {
     
     var debugInjected: DIContainer!
 
-    public var body: some View {
+    var body: some View {
         content
         // enable for easier debugging
             .onAppear {

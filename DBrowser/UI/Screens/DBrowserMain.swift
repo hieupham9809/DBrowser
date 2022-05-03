@@ -8,7 +8,7 @@
 import SwiftUI
 import Combine
 
-public struct DBrowserMain: View {
+struct DBrowserMain: View {
     private let container: DIContainer
 
     @State private(set) var schemeTables: Loadable<[DBDataTable]>
@@ -18,7 +18,7 @@ public struct DBrowserMain: View {
         self._schemeTables = .init(initialValue: .loaded(schemeTables))
     }
 
-    public init(filePath: String) throws {
+    init(filePath: String) throws {
         let dbDataInteractor = try SQLiteDBDataInteractor(
             sqliteFileRepository: SQLiteFileRepository(path: filePath)
         )
@@ -27,7 +27,7 @@ public struct DBrowserMain: View {
         self._schemeTables = .init(initialValue: .notRequested)
     }
 
-    public var body: some View {
+    var body: some View {
         NavigationView {
             self.content
                 .onAppear {
