@@ -114,7 +114,8 @@ extension DBrowserMain {
 
         }
         .listStyle(PlainListStyle())
-        .compatNavigationTitle("All scheme tables", displayMode: .large)
+        .navigationBarTitle("All scheme tables")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

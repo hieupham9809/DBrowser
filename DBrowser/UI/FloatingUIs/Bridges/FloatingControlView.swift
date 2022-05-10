@@ -22,23 +22,33 @@ enum ControlDisplayingMode {
     }
 }
 
+protocol FloatingControlViewDelegate: AnyObject {
+    func didChangeToMode(_ mode: ControlDisplayingMode)
+    func didClose()
+}
+
 struct FloatingControlView: View {
     @State var mode: ControlDisplayingMode = .compact
     @State var main: DBrowserMain?
+    weak var delegate: FloatingControlViewDelegate?
 
-    init(filePath: String) {
+    init(filePath: String, delegate: FloatingControlViewDelegate?) {
         self._main = .init(initialValue: try? DBrowserMain(filePath: filePath))
+        self.delegate = delegate
     }
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .center) {
             switch mode {
             case .regular:
                 VStack(alignment: .center, spacing: 0) {
-                    Button(action: { mode.toggle() }) {
+                    Button(action: {
+                        mode.toggle()
+                        delegate?.didChangeToMode(mode)
+                    }) {
                         Image(systemName: "chevron.down")
                     }
-                    .padding()
+                    .padding(EdgeInsets(top: 6, leading: 0, bottom: 0, trailing: 0))
                     if let main = main {
                         main
                     }
@@ -47,7 +57,10 @@ struct FloatingControlView: View {
                     }
                 }
             case .compact:
-                Button(action: { mode.toggle() }) {
+                Button(action: {
+                    mode.toggle()
+                    delegate?.didChangeToMode(mode)
+                }) {
                     Image(systemName: "list.bullet.rectangle.fill")
                         .resizable()
                         .frame(width: 80, height: 80)
@@ -58,20 +71,13 @@ struct FloatingControlView: View {
                 .padding()
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
     }
 }
 
 struct FloatingControlView_Previews: PreviewProvider {
     static var previews: some View {
-        FloatingControlView(filePath: "")
+        FloatingControlView(filePath: "", delegate: nil)
             .background(Color.gray)
-    }
-}
-
-public final class Interface {
-    public static func display(filePath: String) -> some View {
-        FloatingControlView(filePath: filePath)
     }
 }
