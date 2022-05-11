@@ -39,40 +39,46 @@ struct FloatingControlView: View {
 
     var body: some View {
         ZStack(alignment: .center) {
-            switch mode {
-            case .regular:
-                VStack(alignment: .center, spacing: 0) {
-                    Button(action: {
-                        mode.toggle()
-                        delegate?.didChangeToMode(mode)
-                    }) {
-                        Image(systemName: "chevron.down")
-                    }
-                    .padding(EdgeInsets(top: 6, leading: 0, bottom: 0, trailing: 0))
-                    if let main = main {
-                        main
-                    }
-                    else {
-                        Text("Error loading DB.")
-                    }
-                }
-            case .compact:
+            VStack(alignment: .center, spacing: 0) {
                 Button(action: {
                     mode.toggle()
                     delegate?.didChangeToMode(mode)
                 }) {
-                    Image(systemName: "list.bullet.rectangle.fill")
-                        .resizable()
-                        .frame(width: 80, height: 80)
-                        .background(Color.white)
-                        .cornerRadius(40)
-                        .clipped()
+                    Image(systemName: "chevron.down")
                 }
-                .padding()
+                .padding(EdgeInsets(top: 6, leading: 0, bottom: 0, trailing: 0))
+                if let main = main {
+                    main
+                }
+                else {
+                    Text("Error loading DB.")
+                }
+            }
+            if mode == .compact {
+                VStack {
+                    Button(action: {
+                        mode.toggle()
+                        delegate?.didChangeToMode(mode)
+                    }) {
+                        Image(systemName: "list.bullet.rectangle.fill")
+                            .resizable()
+                            .frame(width: Self.size, height: Self.size)
+                            .background(Color.white)
+                            .cornerRadius(Self.size / 2)
+                            .clipped()
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .cornerRadius(mode == .compact ? Self.size / 2 : 0)
+        .clipped()
     }
+}
+
+extension FloatingControlView {
+    static let size: CGFloat = 80
 }
 
 struct FloatingControlView_Previews: PreviewProvider {

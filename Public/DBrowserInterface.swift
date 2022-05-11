@@ -14,7 +14,7 @@ public final class DBrowserInterface {
     var wrappedViewController: UIHostingController<FloatingControlView>?
     var wrappedView: UIView?
     var fullscreenFrame: CGRect = .zero
-    var compactFrame: CGRect = CGRect(x: 40, y: 40, width: 80, height: 80)
+    var compactFrame: CGRect = CGRect(x: 0, y: 40, width: FloatingControlView.size, height: FloatingControlView.size)
     var mode: ControlDisplayingMode = .compact
     public static func dbrowserView(filePath: String) -> some View {
         FloatingControlView(filePath: filePath, delegate: nil)
