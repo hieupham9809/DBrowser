@@ -16,7 +16,7 @@ Pod::Spec.new do |spec|
   #
 
   spec.name         = "DBrowser"
-  spec.version      = "0.0.1"
+  spec.version      = "v0.0.1"
   spec.summary      = "Database browser for debugging iOS application."
 
   # This description is used to generate tags and improve search results.
@@ -24,9 +24,9 @@ Pod::Spec.new do |spec|
   #   * Try to keep it short, snappy and to the point.
   #   * Write the description between the DESC delimiters below.
   #   * Finally, don't worry about the indent, CocoaPods strips it!
-  spec.description  = "Database browser for debugging iOS application"
+  spec.description  = "A small project reading sqlite file and displaying it in an easy way to debug while developing features relating to database"
 
-  spec.homepage     = "http://EXAMPLE/DBrowser"
+  # spec.homepage     = "http://EXAMPLE/DBrowser"
   # spec.screenshots  = "www.example.com/screenshots_1.gif", "www.example.com/screenshots_2.gif"
 
 
@@ -51,7 +51,7 @@ Pod::Spec.new do |spec|
   #  profile URL.
   #
 
-  spec.author             = { "harley.pham" => "harley.pham@linecorp.com" }
+  spec.author             = { "harley.pham" => "hieupham9809@gmail.com" }
   # Or just: spec.author    = "harley.pham"
   # spec.authors            = { "harley.pham" => "harley.pham@linecorp.com" }
   # spec.social_media_url   = "https://twitter.com/harley.pham"
@@ -78,8 +78,8 @@ Pod::Spec.new do |spec|
   #  Supports git, hg, bzr, svn and HTTP.
   #
 
-  # spec.source       = { :git => "http://EXAMPLE/DBrowser.git", :tag => "#{spec.version}" }
-  spec.source       = { :path => "DBrowsers" }
+  spec.source       = { :git => "https://github.com/hieupham9809/DBrowser.git", :tag => "#{spec.version}" }
+  # spec.source       = { :path => "DBrowsers" }
 
   # ――― Source Code ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
   #
@@ -132,6 +132,5 @@ Pod::Spec.new do |spec|
 
   # spec.xcconfig = { "HEADER_SEARCH_PATHS" => "$(SDKROOT)/usr/include/libxml2" }
   # spec.dependency "JSONKit", "~> 1.4"
-  spec.dependency "SQLite.swift", "~> 0.13.2"
 
 end
