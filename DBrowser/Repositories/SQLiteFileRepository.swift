@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 import SQLite3
+import UIKit
 
 enum DBOrder: String, CustomStringConvertible {
     case asc = "ASC"

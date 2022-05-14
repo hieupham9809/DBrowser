@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 public enum Constants {
     static let defaultColumnWidth: CGFloat = 100
