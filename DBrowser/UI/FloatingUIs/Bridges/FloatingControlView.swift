@@ -69,11 +69,13 @@ struct FloatingControlView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                .background(Color.white)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         .cornerRadius(mode == .compact ? Self.size / 2 : 0)
         .clipped()
+        .animation(nil)
     }
 }
 

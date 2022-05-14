@@ -94,22 +94,20 @@ extension DBrowserInterface {
 extension DBrowserInterface: FloatingControlViewDelegate {
     func didChangeToMode(_ mode: ControlDisplayingMode) {
         self.mode = mode
-        UIView.animate(
-            withDuration: 0.3,
-            animations: {
-                if mode == .compact {
-                    self.wrappedView?.frame = self.compactFrame
-                }
-                else if mode == .regular {
+        if mode == .compact {
+            self.wrappedView?.frame = self.compactFrame
+        }
+        else if mode == .regular {
+            UIView.animate(
+                withDuration: 0.3,
+                animations: {
                     self.wrappedView?.frame = self.fullscreenFrame
                 }
-            }
-        )
+            )
+        }
     }
 
     func didClose() {
-        
+        // TODO:
     }
-
-
 }
