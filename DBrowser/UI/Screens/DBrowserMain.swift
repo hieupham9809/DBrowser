@@ -24,15 +24,14 @@ struct DBrowserMain: View {
         )
         let interactors = DIContainer.Interactors(dbDataInteractor: dbDataInteractor)
         self.container = DIContainer(interactors: interactors)
-        self._schemeTables = .init(initialValue: .notRequested)
+
+        // temporary put the loading here due to a bug on SwiftUI's `onAppear`
+        self._schemeTables = .init(initialValue: .loaded(container.interactors.dbDataInteractor.loadAllTableSchemes()))
     }
 
     var body: some View {
         NavigationView {
             self.content
-                .onAppear {
-                    container.interactors.dbDataInteractor.loadAllTableSchemes(schemes: $schemeTables)
-                }
         }
         .inject(container)
     }

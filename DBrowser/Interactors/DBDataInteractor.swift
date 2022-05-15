@@ -10,6 +10,7 @@ import SwiftUI
 
 protocol DBDataInteractor {
     func loadAllTableSchemes(schemes: Binding<Loadable<[DBDataTable]>>)
+    func loadAllTableSchemes() -> [DBDataTable]
     func loadDataTo(
         _ rows: Binding<Loadable<[DBDataRow]>>,
         from table: String,
@@ -23,6 +24,7 @@ protocol DBDataInteractor {
 
 struct InitialDBDataInteractor: DBDataInteractor {
     func loadAllTableSchemes(schemes: Binding<Loadable<[DBDataTable]>>) { }
+    func loadAllTableSchemes() -> [DBDataTable] { [] }
     func loadDataTo(
         _ rows: Binding<Loadable<[DBDataRow]>>,
         from table: String,

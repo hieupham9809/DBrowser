@@ -60,13 +60,20 @@ struct FloatingControlView: View {
                         mode.toggle()
                         delegate?.didChangeToMode(mode)
                     }) {
-                        Image(systemName: "list.bullet.rectangle.fill")
-                            .resizable()
+                        Circle()
                             .frame(width: Self.size, height: Self.size)
                             .background(Color.white)
+                            .foregroundColor(Color.blue)
                             .cornerRadius(Self.size / 2)
                             .clipped()
+                            .overlay(
+                                Text("DB")
+                                    .font(.system(size: 35))
+                                    .foregroundColor(.white)
+                            )
+
                     }
+                    .buttonStyle(StaticButtonStyle())
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 .background(Color.white)

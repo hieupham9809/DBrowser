@@ -26,6 +26,10 @@ struct SQLiteDBDataInteractor: DBDataInteractor {
             }.store(in: cancelBag)
     }
 
+    func loadAllTableSchemes() -> [DBDataTable] {
+        (try? sqliteFileRepository.loadSchemes()) ?? []
+    }
+
     func loadDataTo(
         _ rows: Binding<Loadable<[DBDataRow]>>,
         from table: String,
