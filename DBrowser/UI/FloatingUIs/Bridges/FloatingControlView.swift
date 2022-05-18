@@ -54,6 +54,7 @@ struct FloatingControlView: View {
                     Text("Error loading DB.")
                 }
             }
+            .background(Color.white)
             if mode == .compact {
                 VStack {
                     Button(action: {

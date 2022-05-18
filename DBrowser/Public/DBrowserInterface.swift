@@ -51,13 +51,28 @@ extension DBrowserInterface {
         passthroughView.addSubview(wrappedView)
         wrappedView.frame = compactFrame
         fullscreenFrame = frame
-        let draggingGesture = UIPanGestureRecognizer(target: Self.shared, action: #selector(panHandler(sender:)))
-        wrappedView.addGestureRecognizer(draggingGesture)
-        wrappedView.isUserInteractionEnabled = true
         viewController.addChild(wrappedViewController)
 
         self.wrappedViewController = wrappedViewController
         self.wrappedView = wrappedView
+
+        setupGestures(for: wrappedView)
+        registerEvents()
+    }
+
+    private func setupGestures(for view: UIView) {
+        let draggingGesture = UIPanGestureRecognizer(target: Self.shared, action: #selector(panHandler(sender:)))
+        view.addGestureRecognizer(draggingGesture)
+        view.isUserInteractionEnabled = true
+    }
+
+    private func registerEvents() {
+        NotificationCenter.default.addObserver(
+            Self.shared,
+            selector: #selector(rotationChangeHandler),
+            name: UIDevice.orientationDidChangeNotification,
+            object: nil
+        )
     }
 
     @objc func panHandler(sender: UIPanGestureRecognizer) {
@@ -87,6 +102,13 @@ extension DBrowserInterface {
                 })
         default:
             break
+        }
+    }
+
+    @objc func rotationChangeHandler() {
+        if mode == .regular, let bounds = wrappedViewController?.view.bounds {
+            wrappedView?.frame.size.width = bounds.width
+            wrappedView?.frame.size.height = bounds.height
         }
     }
 }
