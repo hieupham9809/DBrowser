@@ -122,7 +122,7 @@ extension DBrowserTableDetails {
         VStack(spacing: 10) {
             HStack {
                 Text("Header Toolbar here: Filter, search")
-            }
+            }.fixedSize()
             ScrollView(.horizontal) {
                 List(Array(zip(rows.indices, rows)), id: \.1.id) { (index, row) in
                     HStack(spacing: 0) {
@@ -157,9 +157,10 @@ extension DBrowserTableDetails {
                     UITableView.appearance().separatorStyle = .none
                 }
             }
-            PagingControllerView(currentPage: $currentPage, totalPage: $totalPage)
+            PagingControllerView(currentPage: $currentPage, totalPage: $totalPage).fixedSize()
         }
         .padding(10)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
     }
 
     private func cellContentBuilder(from item: DBDataItemDisplayable, isHeaderRow: Bool) -> some View {
