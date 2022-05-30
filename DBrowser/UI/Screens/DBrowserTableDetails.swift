@@ -48,7 +48,13 @@ struct DBrowserTableDetails: View {
     var debugInjected: DIContainer!
 
     var body: some View {
-        content
+        Group {
+            switch rows {
+            case .isLoading(_, _): loadingView().padding(0)
+            case let .loaded(rows): loadView(rows)
+            default: Text("unsupported")
+            }
+        }
         // enable for easier debugging
             .onAppear {
                 loadPageInfos()
@@ -122,7 +128,8 @@ extension DBrowserTableDetails {
         VStack(spacing: 10) {
             HStack {
                 Text("Header Toolbar here: Filter, search")
-            }.fixedSize()
+                    .frame(width: nil, height: 40, alignment: .center)
+            }
             ScrollView(.horizontal) {
                 List(Array(zip(rows.indices, rows)), id: \.1.id) { (index, row) in
                     HStack(spacing: 0) {
@@ -157,7 +164,8 @@ extension DBrowserTableDetails {
                     UITableView.appearance().separatorStyle = .none
                 }
             }
-            PagingControllerView(currentPage: $currentPage, totalPage: $totalPage).fixedSize()
+            PagingControllerView(currentPage: $currentPage, totalPage: $totalPage)
+                .frame(width: nil, height: 81, alignment: .center)
         }
         .padding(10)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)

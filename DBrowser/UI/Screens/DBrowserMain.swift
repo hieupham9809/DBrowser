@@ -31,7 +31,11 @@ struct DBrowserMain: View {
 
     var body: some View {
         NavigationView {
-            self.content
+            switch schemeTables {
+            case .isLoading(_, _): loadingView().padding(0)
+            case let .loaded(schemeTables): loadView(schemeTables)
+            default: Text("unsupported")
+            }
         }
         .inject(container)
     }

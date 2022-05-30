@@ -54,6 +54,7 @@ struct FloatingControlView: View {
                     Text("Error loading DB.")
                 }
             }
+            .padding(EdgeInsets(top: 40, leading: 0, bottom: 0, trailing: 0))
             .background(Color.white)
             if mode == .compact {
                 VStack {
@@ -84,6 +85,7 @@ struct FloatingControlView: View {
         .cornerRadius(mode == .compact ? Self.size / 2 : 0)
         .clipped()
         .animation(nil)
+        .ignoresSafeArea()
     }
 }
 

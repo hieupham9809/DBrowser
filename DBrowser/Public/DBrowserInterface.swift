@@ -45,6 +45,26 @@ extension DBrowserInterface {
             viewController.view.addSubview(passthroughView)
             frame = viewController.view.bounds
         }
+//        var frame: CGRect
+//        var safeAreaLayoutFrame: CGRect
+//        if displayingOnTopMost, let window = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) {
+//            window.addSubview(passthroughView)
+//            frame = window.bounds
+//            safeAreaLayoutFrame = window.safeAreaLayoutGuide.layoutFrame
+//        }
+//        else {
+//            viewController.view.addSubview(passthroughView)
+//            frame = viewController.view.bounds
+//            safeAreaLayoutFrame = UIApplication.shared.windows.first?.safeAreaLayoutGuide.layoutFrame ?? .zero
+//        }
+//
+//        var adjustedFrame = frame
+//        if safeAreaLayoutFrame != .zero {
+//            adjustedFrame = CGRect(
+//                x: frame.minX + safeAreaLayoutFrame.origin.x, y: frame.minY + safeAreaLayoutFrame.origin.y,
+//                width: safeAreaLayoutFrame.width, height: safeAreaLayoutFrame.height
+//            )
+//        }
 
         passthroughView.frame = frame
         wrappedViewController.view = passthroughView
